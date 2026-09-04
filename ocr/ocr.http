@@ -1,6 +1,16 @@
 @ocr_HostAddress = http://localhost:5084
 
-GET {{ocr_HostAddress}}/weatherforecast/
+### Login (any username/password)
+POST {{ocr_HostAddress}}/login
+Content-Type: application/x-www-form-urlencoded
+
+### username=test&password=test
+
+### Who am I
+GET {{ocr_HostAddress}}/whoami
 Accept: application/json
+
+### Logout
+POST {{ocr_HostAddress}}/logout
 
 ###

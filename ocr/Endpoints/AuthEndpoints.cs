@@ -1,0 +1,64 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+
+namespace ocr.Endpoints;
+
+public static class AuthEndpoints
+{
+    public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/");
+
+        group.MapGet("/login", () => Results.Content(
+            """
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="utf-8" />
+                <title>Login</title>
+            </head>
+            <body>
+                <form method="post" action="/login">
+                    <label for="username">Имя</label>
+                    <input type="text" id="username" name="username" autocomplete="username" />
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" autocomplete="current-password" />
+                    <button type="submit">Войти</button>
+                </form>
+            </body>
+            </html>
+            """,
+            "text/html"));
+
+        group.MapPost("/login", async (HttpContext context) =>
+        {
+            var form = await context.Request.ReadFormAsync();
+            var username = form["username"].ToString();
+
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.Name, username)
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+            return Results.Ok();
+        });
+
+        group.MapPost("/logout", async (HttpContext context) =>
+        {
+            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Results.Ok();
+        });
+
+        group.MapGet("/whoami", (ClaimsPrincipal user) =>
+            Results.Ok(user.Identity?.Name ?? "anonymous"))
+            .RequireAuthorization();
+
+        return app;
+    }
+}
