@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="ocr/ocr.csproj" />
+  <Project Path="auth/auth.csproj" />
+  <Project Path="tesseract/tesseract.csproj" />
 </Solution>

@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace ocr.Endpoints;
+namespace auth.Endpoints;
 
 public static class AuthEndpoints
 {
@@ -46,17 +46,32 @@ public static class AuthEndpoints
 
             await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            return Results.Ok();
+            return Results.Redirect("/whoami");
         });
 
         group.MapPost("/logout", async (HttpContext context) =>
         {
             await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Results.Ok();
+            return Results.Redirect("/login");
         });
 
-        group.MapGet("/whoami", (ClaimsPrincipal user) =>
-            Results.Ok(user.Identity?.Name ?? "anonymous"))
+        group.MapGet("/whoami", (ClaimsPrincipal user) => Results.Content(
+            $"""
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="utf-8" />
+                <title>Who am I</title>
+            </head>
+            <body>
+                <p>Вы вошли как: {user.Identity?.Name ?? "anonymous"}</p>
+                <form method="post" action="/logout">
+                    <button type="submit">Выйти</button>
+                </form>
+            </body>
+            </html>
+            """,
+            "text/html"))
             .RequireAuthorization();
 
         return app;
