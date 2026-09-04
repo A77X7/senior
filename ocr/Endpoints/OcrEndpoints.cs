@@ -31,7 +31,7 @@ public static class OcrEndpoints
                 </html>
                 """,
                 "text/html");
-        });
+        }).RequireAuthorization();
 
         group.MapPost("/test", async (IFormFile file, TesseractClient client, CancellationToken ct) =>
         {
@@ -41,13 +41,29 @@ public static class OcrEndpoints
             try
             {
                 var text = await client.RecognizeAsync(stream, contentType, ct);
-                return Results.Content(text, "text/plain; charset=utf-8");
+                var encodedText = System.Net.WebUtility.HtmlEncode(text);
+
+                return Results.Content(
+                    $"""
+                    <!DOCTYPE html>
+                    <html lang="ru">
+                    <head>
+                        <meta charset="utf-8" />
+                        <title>OCR результат</title>
+                    </head>
+                    <body>
+                        <a href="/test">Назад</a>
+                        <pre>{encodedText}</pre>
+                    </body>
+                    </html>
+                    """,
+                    "text/html");
             }
             catch (HttpRequestException ex)
             {
                 return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
             }
-        });
+        }).RequireAuthorization();
 
         return app;
     }
