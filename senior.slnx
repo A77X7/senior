@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="folder_watcher/folder_watcher.csproj" Id="6efd35c0-2482-4b4b-811f-9a61ab7d5c34" />
   <Project Path="ocr/ocr.csproj" />
   <Project Path="auth/auth.csproj" />
   <Project Path="tesseract/tesseract.csproj" />
