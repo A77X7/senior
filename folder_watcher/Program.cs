@@ -15,7 +15,19 @@ builder.Services.AddHttpClient<TesseractClient>((sp, client) =>
     UseProxy = false,
 });
 
-builder.Services.AddHostedService<FolderWatcherService>();
+var transport = builder.Configuration["Watcher:Transport"] ?? "Http";
+
+if (transport.Equals("Kafka", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddSingleton<PublishedFiles>();
+    builder.Services.AddSingleton<KafkaFilePublisher>();
+    builder.Services.AddHostedService<FolderWatcherKafkaService>();
+    builder.Services.AddHostedService<KafkaResultConsumerService>();
+}
+else
+{
+    builder.Services.AddHostedService<FolderWatcherService>();
+}
 
 var app = builder.Build();
 
