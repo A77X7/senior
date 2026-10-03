@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 1s # Как часто опрашивать приложение
+
+scrape_configs:
+  - job_name: 'aspnet-app'
+    metrics_path: '/metrics'
+    static_configs:
+      # host.docker.internal позволяет контейнеру достучаться до вашего приложения на хост-машине
+      - targets: ['host.docker.internal:8081'] # Замените 5001 на порт вашего ASP.NET приложения

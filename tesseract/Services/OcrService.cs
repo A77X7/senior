@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using tesseract.Metrics;
 
 namespace tesseract.Services;
 
@@ -20,9 +21,21 @@ public sealed class OcrService : IOcrService
         ["image/gif"] = ".gif",
         ["application/pdf"] = ".pdf",
     };
+    private readonly TesseractMetrics tesseractMetrics;
+    private readonly ILogger<OcrService> logger;
+
+    public OcrService(TesseractMetrics tesseractMetrics, ILogger<OcrService> logger)
+    {
+        this.tesseractMetrics = tesseractMetrics;
+        this.logger = logger;
+    }
 
     public async Task<string> RecognizeAsync(Stream stream, string? contentType, string language, CancellationToken ct = default)
     {
+        logger.LogInformation("Starting OCR recognition. Type: {ContentType}. Size: {FileSize}", contentType, stream.Length);
+
+        var sw = Stopwatch.StartNew();
+
         var extension = ResolveExtension(contentType);
 
         var tempDir = Path.Combine(Path.GetTempPath(), "tesseract-ocr");
@@ -43,7 +56,10 @@ public sealed class OcrService : IOcrService
         }
         finally
         {
+            sw.Stop();
+            tesseractMetrics.RecordFileThroughput(stream.Length, sw.ElapsedMilliseconds);
             File.Delete(inputPath);
+            logger.LogInformation("Finished OCR recognition. Type: {ContentType}. Size: {FileSize}. Time: {ElapsedMilliseconds} ms", contentType, stream.Length, sw.ElapsedMilliseconds);
         }
     }
 

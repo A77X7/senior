@@ -30,6 +30,8 @@ public static class OcrEndpoints
             }
         });
 
+        app.MapGet("/ping", () => Results.Ok("pong"));
+
         return app;
     }
 }

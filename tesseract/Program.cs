@@ -1,16 +1,58 @@
+using OpenTelemetry.Metrics;
+using Serilog;
 using tesseract.Endpoints;
+using tesseract.Metrics;
 using tesseract.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .Build())
+    .CreateLogger();
 
-builder.Services.Configure<KafkaOptions>(builder.Configuration.GetSection("Kafka"));
+try
+{
+    Log.Information("Starting up the application");
 
-builder.Services.AddSingleton<IOcrService, OcrService>();
-builder.Services.AddSingleton<KafkaResultPublisher>();
-builder.Services.AddHostedService<KafkaOcrConsumerService>();
+    var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+    builder.Host.UseSerilog((context, configuration) =>
+    {
+        configuration.ReadFrom.Configuration(context.Configuration);
+    });
 
-app.MapOcrEndpoints();
+    builder.Services.Configure<KafkaOptions>(builder.Configuration.GetSection("Kafka"));
 
-app.Run();
+    builder.Services.AddSingleton<IOcrService, OcrService>();
+    builder.Services.AddSingleton<TesseractMetrics>();
+    builder.Services.AddSingleton<KafkaResultPublisher>();
+    builder.Services.AddHostedService<KafkaOcrConsumerService>();
+
+    builder.Services.AddOpenTelemetry()
+        .WithMetrics(metricsProvider =>
+        {
+            metricsProvider
+                .AddAspNetCoreInstrumentation() // Стандартные метрики ASP.NET Core
+                .AddRuntimeInstrumentation()
+                .AddMeter(TesseractMetrics.MeterName) // Говорим OTel слушать наш кастомный Meter
+                .AddPrometheusExporter(); // Включаем поддержку формата Prometheus
+        });
+
+    var app = builder.Build();
+
+    app.UseSerilogRequestLogging();
+
+    app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
+    app.MapOcrEndpoints();
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application start-up failed");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
