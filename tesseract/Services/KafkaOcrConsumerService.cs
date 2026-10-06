@@ -96,7 +96,7 @@ public sealed class KafkaOcrConsumerService : BackgroundService
         return text;
     }
 
-    private static string ResolveContentType(string path) =>
+    internal static string ResolveContentType(string path) =>
         Path.GetExtension(path).ToLowerInvariant() switch
         {
             ".jpg" or ".jpeg" => "image/jpeg",

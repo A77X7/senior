@@ -108,7 +108,7 @@ public sealed class OcrService : IOcrService
         return stdout;
     }
 
-    private static string ResolveExtension(string? contentType)
+    internal static string ResolveExtension(string? contentType)
     {
         if (string.IsNullOrWhiteSpace(contentType))
         {
@@ -119,7 +119,7 @@ public sealed class OcrService : IOcrService
         return ExtensionByContentType.TryGetValue(mediaType, out var extension) ? extension : ".bin";
     }
 
-    private static int ExtractPageNumber(string path)
+    internal static int ExtractPageNumber(string path)
     {
         var name = Path.GetFileNameWithoutExtension(path);
         var index = name.Length;
