@@ -47,3 +47,51 @@ jobs:
       with:
         name: dotnet10-publish
         path: ./publish/
+
+  build-and-push-images:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Determine registry host
+      run: |
+        REGISTRY="$(echo '${{ github.server_url }}' | sed -E 's|^https?://||')"
+        OWNER="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+        SHA="$(echo '${{ github.sha }}' | cut -c1-8)"
+        echo "REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
+        echo "OWNER=$OWNER" >> "$GITHUB_ENV"
+        echo "SHA=$SHA" >> "$GITHUB_ENV"
+
+    - name: Login to Gitea Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITEA_TOKEN }}
+
+    - name: Build and push tesseract
+      uses: docker/build-push-action@v6
+      with:
+        context: ./tesseract
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.OWNER }}/tesseract:latest
+          ${{ env.REGISTRY }}/${{ env.OWNER }}/tesseract:${{ env.SHA }}
+
+    - name: Build and push folder_watcher
+      uses: docker/build-push-action@v6
+      with:
+        context: ./folder_watcher
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.OWNER }}/folder_watcher:latest
+          ${{ env.REGISTRY }}/${{ env.OWNER }}/folder_watcher:${{ env.SHA }}
