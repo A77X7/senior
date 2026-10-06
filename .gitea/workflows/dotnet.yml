@@ -1,0 +1,43 @@
+name: .NET 10 Multi-Project CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    # 1. Восстанавливаем и собираем ВСЁ решение целиком
+    # (Это проверит синтаксис всех проектов сразу)
+    - name: Restore & Build Solution
+      run: |
+        dotnet restore
+        dotnet build --configuration Release --no-restore
+
+    # 2. Запускаем тесты ТОЛЬКО для тестового проекта
+    - name: Run Unit Tests
+      run: dotnet test ./tesseract.tests/tesseract.tests.csproj --configuration Release --no-build
+
+    # 3. Публикуем (Publish) конкретные проекты в разные папки артефактов
+    # (Например, компилируем WebApi в готовый наборов файлов для деплоя)
+    - name: Publish tesseract
+      run: dotnet publish ./tesseract/tesseract.csproj --configuration Release --output ./publish/tesseract --no-build
+
+    - name: Publish ocr
+      run: dotnet publish ./ocr/ocr.csproj --configuration Release --output ./publish/ocr --no-build
+
+    - name: Publish folder_watcher
+      run: dotnet publish ./folder_watcher/folder_watcher.csproj --configuration Release --output ./publish/folder_watcher --no-build
+
+    - name: Publish auth
+      run: dotnet publish ./auth/auth.csproj --configuration Release --output ./publish/auth --no-build
