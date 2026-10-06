@@ -41,3 +41,9 @@ jobs:
 
     - name: Publish auth
       run: dotnet publish ./auth/auth.csproj --configuration Release --output ./publish/auth --no-build
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: my-dotnet10-app          # Имя архива, которое вы увидите в браузере
+        path: ./publish/
