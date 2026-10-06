@@ -31,19 +31,19 @@ jobs:
     # 3. Публикуем (Publish) конкретные проекты в разные папки артефактов
     # (Например, компилируем WebApi в готовый наборов файлов для деплоя)
     - name: Publish tesseract
-      run: dotnet publish ./tesseract/tesseract.csproj --configuration Release --output /data/publish/tesseract --no-build
+      run: dotnet publish ./tesseract/tesseract.csproj --configuration Release --output ./publish/tesseract --no-build
 
     - name: Publish ocr
-      run: dotnet publish ./ocr/ocr.csproj --configuration Release --output /data/publish/ocr --no-build
+      run: dotnet publish ./ocr/ocr.csproj --configuration Release --output ./publish/ocr --no-build
 
     - name: Publish folder_watcher
-      run: dotnet publish ./folder_watcher/folder_watcher.csproj --configuration Release --output /data/publish/folder_watcher --no-build
+      run: dotnet publish ./folder_watcher/folder_watcher.csproj --configuration Release --output ./publish/folder_watcher --no-build
 
     - name: Publish auth
-      run: dotnet publish ./auth/auth.csproj --configuration Release --output /data/publish/auth --no-build
+      run: dotnet publish ./auth/auth.csproj --configuration Release --output ./publish/auth --no-build
 
-#    - name: Upload Artifacts
-#      uses: actions/upload-artifact@v4
-#      with:
-#        name: my-dotnet10-app          # Имя архива, которое вы увидите в браузере
-#        path: ./publish/
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dotnet10-publish
+        path: ./publish/
