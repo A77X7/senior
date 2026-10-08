@@ -64,7 +64,10 @@ jobs:
 
     - name: Determine registry host
       run: |
-        REGISTRY="$(echo '${{ github.server_url }}' | sed -E 's|^https?://||')"
+        REGISTRY="${{ vars.REGISTRY_HOST }}"
+        if [ -z "$REGISTRY" ]; then
+          REGISTRY="$(echo '${{ github.server_url }}' | sed -E 's|^https?://||')"
+        fi
         OWNER="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
         SHA="$(echo '${{ github.sha }}' | cut -c1-8)"
         echo "REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
