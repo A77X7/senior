@@ -59,9 +59,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
     - name: Determine registry host
       run: |
         REGISTRY="${{ vars.REGISTRY_HOST }}"
@@ -82,19 +79,15 @@ jobs:
         password: ${{ secrets.REGISTRY_TOKEN }}
 
     - name: Build and push tesseract
-      uses: docker/build-push-action@v6
-      with:
-        context: ./tesseract
-        push: true
-        tags: |
-          ${{ env.REGISTRY }}/${{ env.OWNER }}/tesseract:latest
-          ${{ env.REGISTRY }}/${{ env.OWNER }}/tesseract:${{ env.SHA }}
+      run: |
+        docker build -t ${{ env.REGISTRY }}/${{ env.OWNER }}/tesseract:latest ./tesseract
+        docker tag ${{ env.REGISTRY }}/${{ env.OWNER }}/tesseract:latest ${{ env.REGISTRY }}/${{ env.OWNER }}/tesseract:${{ env.SHA }}
+        docker push ${{ env.REGISTRY }}/${{ env.OWNER }}/tesseract:latest
+        docker push ${{ env.REGISTRY }}/${{ env.OWNER }}/tesseract:${{ env.SHA }}
 
     - name: Build and push folder_watcher
-      uses: docker/build-push-action@v6
-      with:
-        context: ./folder_watcher
-        push: true
-        tags: |
-          ${{ env.REGISTRY }}/${{ env.OWNER }}/folder_watcher:latest
-          ${{ env.REGISTRY }}/${{ env.OWNER }}/folder_watcher:${{ env.SHA }}
+      run: |
+        docker build -t ${{ env.REGISTRY }}/${{ env.OWNER }}/folder_watcher:latest ./folder_watcher
+        docker tag ${{ env.REGISTRY }}/${{ env.OWNER }}/folder_watcher:latest ${{ env.REGISTRY }}/${{ env.OWNER }}/folder_watcher:${{ env.SHA }}
+        docker push ${{ env.REGISTRY }}/${{ env.OWNER }}/folder_watcher:latest
+        docker push ${{ env.REGISTRY }}/${{ env.OWNER }}/folder_watcher:${{ env.SHA }}
