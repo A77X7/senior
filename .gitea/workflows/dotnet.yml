@@ -79,7 +79,7 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
-        password: ${{ secrets.GITEA_TOKEN }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
 
     - name: Build and push tesseract
       uses: docker/build-push-action@v6
